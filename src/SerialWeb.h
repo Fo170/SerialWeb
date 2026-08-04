@@ -4,7 +4,7 @@
 // - Buffer circulaire de logs (heap, lignes × 64 chars)
 // - Chaque log : écrit sur Serial (USB) + buffer + broadcast WS
 // - /serialws : à la connexion → backlog ; messages = commandes
-// - ⚠️ Aucune I²C/FRAM ici ; le WS diffuse du texte seulement.
+// - le WS diffuse du texte seulement.
 // - Dépendances INJECTÉES (pas de globals extern) :
 //     * AsyncWebServer* (à passer au constructeur)
 //     * callback de commande void(*)(const String&) (optionnel)
