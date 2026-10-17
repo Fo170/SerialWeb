@@ -13,14 +13,24 @@
 #ifndef SERIAL_WEB_H
 #define SERIAL_WEB_H
 
+// Version de la librairie (source UNIQUE — agrégée par src/liste_lib.h)
+#define __SERIALWEB_H_VERSION__ "1.1.0"
+
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
 
 class SerialWeb {
+public:
+    // Sink de log optionnel : reçoit CHAQUE texte journalisé (miroir, ex. syslog).
+    // ⚠️ Appelé dans le contexte d'appel de print/println (parfois async WS) :
+    //    le sink ne doit NI bloquer NI rappeler sw.* (sinon récursion).
+    typedef void (*LogSinkFn)(const char*);
+
 private:
     AsyncWebServer* srv = nullptr;
     AsyncWebSocket  ws;
     void (*onCommand)(const String&) = nullptr;
+    LogSinkFn _sink = nullptr;
 
     struct LogLine { uint32_t ts; char text[64]; };
     LogLine* lines = nullptr;
@@ -30,6 +40,7 @@ private:
 
     void doLog(const char* text) {
         Serial.print(text);   // USB (toujours)
+        if (_sink) _sink(text);   // miroir (ex. → Syslog_UDP) — ne bloque pas
         if (lines) {
             LogLine& l = lines[head];
             l.ts = millis();
@@ -54,6 +65,10 @@ public:
               uint8_t bufLines = 24)
         : srv(srvPtr), ws(wsPath), onCommand(cmdHandler),
           capacity(bufLines ? bufLines : 24) {}
+
+    // Branche un miroir de log (ex. syslog). Passer nullptr pour débrancher.
+    // ⚠️ Le sink doit être rapide et ne PAS rappeler sw.* (récursion).
+    void setLogSink(LogSinkFn fn) { _sink = fn; }
 
     // Alloue le buffer + enregistre le handler WS. À appeler dans setup().
     void init() {
