@@ -14,7 +14,7 @@
 #define SERIAL_WEB_H
 
 // Version de la librairie (source UNIQUE — agrégée par src/liste_lib.h)
-#define __SERIALWEB_H_VERSION__ "1.1.0"
+#define __SERIALWEB_H_VERSION__ "1.1.1"
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
