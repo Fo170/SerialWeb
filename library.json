@@ -1,6 +1,6 @@
 {
   "name": "SerialWeb",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Moniteur série WebSocket pour ESP8266/ESP32 : chaque log Serial est dupliqué sur USB + un buffer circulaire (backlog) + broadcast WebSocket, avec commandes bidirectionnelles",
   "keywords": ["serial", "websocket", "monitor", "debug", "log", "async", "esp8266", "esp32"],
   "repository": {

@@ -6,6 +6,38 @@ versionnement [SemVer](https://semver.org/lang/fr/).
 
 ---
 
+## [1.1.2] - 2026-10-23
+
+### ✨ Added — variantes FLASH (économie de RAM)
+
+Sur **ESP8266**, le `.rodata` vit en **RAM** : chaque littéral passé à
+`print`/`println`/`printf` occupait de la RAM en permanence. Nouvelle API :
+
+```cpp
+sw.print(F("texte"));              // sans copie en RAM
+sw.println(F("texte"));
+sw.printf_P(PSTR("V=%.2f\n"), v);  // format en flash
+sw.println_P(PSTR("I=%.3f"), i);
+```
+
+Motif : sur le projet Coulométre, 95 appels `sw.print*("…")` représentaient
+≈ 3 940 o de formats en RAM (**−4 112 o** de RAM statique mesurés après
+conversion).
+
+`SerialWeb` n'héritant pas de `Print`, ces surcharges n'existaient pas et
+aucune conversion `F()`/`printf_P` n'était possible côté application.
+
+Le contenu flash est recopié dans un tampon de pile (`strncpy_P`) avant
+`doLog()` : correct sur ESP8266 (flash mappée) comme sur ESP32 (accès via
+`pgm_read_byte`).
+
+### 🏷️ Divers
+
+- Version `1.1.1` → `1.1.2` (`library.json` + `library.properties`)
+- `keywords.txt` : `printf_P`, `println_P`
+
+---
+
 ## [1.1.1] - 2026-10-17
 
 ### ✨ Added — macro de version `__<LIB>_H_VERSION__`

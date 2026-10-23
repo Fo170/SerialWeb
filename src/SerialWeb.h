@@ -14,7 +14,7 @@
 #define SERIAL_WEB_H
 
 // Version de la librairie (source UNIQUE — agrégée par src/liste_lib.h)
-#define __SERIALWEB_H_VERSION__ "1.1.1"
+#define __SERIALWEB_H_VERSION__ "1.1.2"
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
@@ -122,6 +122,47 @@ public:
     void println()                { doLog("\n"); }
     void print(const char* s)     { doLog(s); }
     void print(const String& s)   { doLog(s.c_str()); }
+
+    // ---- Variantes FLASH (v1.1.2) -------------------------------------
+    // Sur ESP8266 le .rodata vit en RAM : chaque littéral passé à print/printf
+    // occupe de la RAM en permanence. Ces surcharges permettent
+    //   sw.print(F("...")); sw.println(F("...")); sw.printf_P(PSTR("..."));
+    // sans copier le littéral en RAM. Le contenu est recopié dans un tampon de
+    // pile (strncpy_P) avant doLog : correct sur ESP8266 (flash mappée) comme
+    // sur ESP32 (accès flash via pgm_read_byte).
+    void print(const __FlashStringHelper* s) {
+        char buf[128];
+        strncpy_P(buf, reinterpret_cast<PGM_P>(s), sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = 0;
+        doLog(buf);
+    }
+
+    void println(const __FlashStringHelper* s) {
+        char buf[128];
+        strncpy_P(buf, reinterpret_cast<PGM_P>(s), sizeof(buf) - 1);
+        buf[sizeof(buf) - 1] = 0;
+        doLog(buf);
+        doLog("\n");
+    }
+
+    void printf_P(PGM_P fmt, ...) {
+        char buf[128];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf_P(buf, sizeof(buf), fmt, args);
+        va_end(args);
+        doLog(buf);
+    }
+
+    void println_P(PGM_P fmt, ...) {
+        char buf[128];
+        va_list args;
+        va_start(args, fmt);
+        vsnprintf_P(buf, sizeof(buf), fmt, args);
+        va_end(args);
+        doLog(buf);
+        doLog("\n");
+    }
 };
 
 // Instance globale par défaut (convention Fo170, cf. t_fct.h).
